@@ -64,10 +64,7 @@ func ReadThread(b string, t string) {
 	}
 
 	for _, x := range threadPosts.Posts {
-		fmt.Println(x.Id, x.Time, x.Subject, "\n",
-					x.Name, "\n",
-					x.Comment, "\n"
-				)
+		readPost(x)
 	}
 }
 
@@ -78,10 +75,14 @@ func ReadCatalog(b string) {
 		return
 	}
 	for _, oneThread := range entireCatalog.Threads { // fix that later
-		fmt.Println(oneThread.OP.Id, oneThread.OP.Time, oneThread.OP.Subject, "\n",
-					oneThread.OP.Name, "\n",
-					oneThread.OP.Comment, "\n"
-				)
+		readPost(oneThread.OP)
 	}
 
+}
+
+func readPost(p api.Post) {
+	fmt.Println(p.Id, p.Time, p.Subject, "\n",
+				p.Name, "\n",
+				p.Comment, "\n"
+			)
 }
