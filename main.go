@@ -9,13 +9,13 @@ import(
 )
 
 func main() {
-	board, thread := parseArgs()
+	board, thread := ParseArgs()
 	if board == "" && thread == "" { fmt.Println("didnt provide nor thread nor board"); return }
 	if board == "" { fmt.Pritnln("how can i find a thread if no board is given"); return }
-	if thread == "" { readCatalog() } else { readThread(board, thread) }
+	if thread == "" { ReadCatalog(board) } else { ReadThread(board, thread) }
 }
 
-func parseArgs() (string, string) {
+func ParseArgs() (string, string) {
 	arguments = os.Args[1:]
 	var chosenBoard string
 	var chosenThread string
@@ -56,12 +56,32 @@ func contains(a string, in []string) int {
 	return -1
 }
 
-func readThread(b string, t string) {
-	threadPosts := api.GetThread(b, t)
+func ReadThread(b string, t string) {
+	threadPosts, err := api.GetThread(b, t)
+	if err != nil {
+		fmt.Pritnln("could not read thread", t, "from board", b)
+		return
+	}
+
 	for _, x := range threadPosts.Posts {
 		fmt.Println(x.Id, x.Time, x.Subject, "\n",
 					x.Name, "\n",
 					x.Comment, "\n"
 				)
 	}
+}
+
+func ReadCatalog(b string) {
+	entireCatalog, err := api.GetCatalog(b)
+	if err != nil {
+		fmt.Pritnln("could not get catalog from", b, "board")
+		return
+	}
+	for _, oneThread := range entireCatalog.Threads { // fix that later
+		fmt.Println(oneThread.OP.Id, oneThread.OP.Time, oneThread.OP.Subject, "\n",
+					oneThread.OP.Name, "\n",
+					oneThread.OP.Comment, "\n"
+				)
+	}
+
 }
