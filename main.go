@@ -6,43 +6,56 @@ import(
 	"fmt"
 	"os"
 	"strconv"
+	"regexp"
+)
+
+var(
+	stuffReplace = []*regexp.Regexp{regexp.MustCompile("<br>"),
+									regexp.MustCompile("<a href=\"#p[0-9]+\" class=\"quotelink\">"),
+									regexp.MustCompile("</a>"),
+									regexp.MustCompile("&gt;"),
+									regexp.MustCompile("<span class=\"quote\">"),
+									regexp.MustCompile("</span>"),
+									regexp.MustCompile("&#039;")}
+	stuffEndup = []string{"\n ", "", "", ">", "", "", "'"}
 )
 
 func main() {
 	board, thread := ParseArgs()
-	if board == "" && thread == "" { fmt.Println("didnt provide nor thread nor board"); return }
-	if board == "" { fmt.Pritnln("how can i find a thread if no board is given"); return }
-	if thread == "" { ReadCatalog(board) } else { ReadThread(board, thread) }
+	if board == "" && thread == 0 { fmt.Println("didnt provide nor thread nor board"); return }
+	if board == "" { fmt.Println("how can i find a thread if no board is given"); return }
+	if thread == 0 { ReadCatalog(board) } else { ReadThread(board, thread) }
 }
 
-func ParseArgs() (string, string) {
-	arguments = os.Args[1:]
+func ParseArgs() (string, int64) {
+	arguments := os.Args[1:]
 	var chosenBoard string
-	var chosenThread string
+	var chosenThread int64
 	if x := contains("-b", arguments); x != -1 {
 		if x < len(arguments) {
-			if board, _ := api.LookupBoards(); board.Board == arguments[x+1] {
+			if board, _ := api.LookupBoard(arguments[x+1]); board.Board == arguments[x+1] {
 				chosenBoard = board.Board
 			} else {
 				fmt.Println("no such board")
-				return "", ""
+				return "", 0
 			}
 		} else {
 			fmt.Println("you didn't provide any board")
-			return "", ""
+			return "", 0
 		}
 	} else {
 		fmt.Println("no board given")
-		return "", ""
+		return "", 0
 	}
 
 	if x := contains("-t", arguments); x != -1 {
 		if x < len(arguments) {
-			chosenThread, err := strconv.ParseInt(arguments[x+1], 10, 64)
-			if err != nil { fmt.Println("invalid thread number"); return "", ""}
+			t, err := strconv.ParseInt(arguments[x+1], 10, 64)
+			if err != nil { fmt.Println("invalid thread number"); return "", 0}
+			chosenThread = t
 		} else {
 			fmt.Println("this isn't a number dummy")
-			return "", ""
+			return "", 0
 		}
 	}
 	return chosenBoard, chosenThread
@@ -56,10 +69,10 @@ func contains(a string, in []string) int {
 	return -1
 }
 
-func ReadThread(b string, t string) {
+func ReadThread(b string, t int64) {
 	threadPosts, err := api.GetThread(b, t)
 	if err != nil {
-		fmt.Pritnln("could not read thread", t, "from board", b)
+		fmt.Println("could not read thread", t, "from board", b)
 		return
 	}
 
@@ -71,18 +84,25 @@ func ReadThread(b string, t string) {
 func ReadCatalog(b string) {
 	entireCatalog, err := api.GetCatalog(b)
 	if err != nil {
-		fmt.Pritnln("could not get catalog from", b, "board")
+		fmt.Println("could not get catalog from", b, "board")
 		return
 	}
-	for _, oneThread := range entireCatalog.Threads { // fix that later
+	for _, oneThread := range entireCatalog[0].Threads { // fix that later
 		readPost(oneThread.OP)
 	}
 
 }
 
-func readPost(p api.Post) {
-	fmt.Println(p.Id, p.Time, p.Subject, "\n",
-				p.Name, "\n",
-				p.Comment, "\n"
-			)
+func readPost(p *api.Post) {
+	var file string
+	if p.File != nil { file = p.File.String()}
+	fmt.Printf("%v %v %v\n%v %v\n\n", p.Name, p.Time, p.Id, file, parseComment(p.Comment))
+}
+
+func parseComment(comm string) string {
+	for y, x := range stuffReplace {
+		comm = x.ReplaceAllString(comm, stuffEndup[y])
+	}
+	return comm
+
 }
