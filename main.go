@@ -16,8 +16,12 @@ var(
 									regexp.MustCompile("&gt;"),
 									regexp.MustCompile("<span class=\"quote\">"),
 									regexp.MustCompile("</span>"),
-									regexp.MustCompile("&#039;")}
-	stuffEndup = []string{"\n ", "", "", ">", "", "", "'"}
+									regexp.MustCompile("&#039;"),
+									regexp.MustCompile("<s>"),
+									regexp.MustCompile("</s>"),
+									regexp.MustCompile("&quot;"),
+									regexp.MustCompile("<wbr>")}
+	stuffEndup = []string{"\n", "", "", ">", "", "", "'", "-", "-", "\"", ""}
 )
 
 func main() {
@@ -96,13 +100,28 @@ func ReadCatalog(b string) {
 func readPost(p *api.Post) {
 	var file string
 	if p.File != nil { file = p.File.String()}
-	fmt.Printf("%v %v %v\n%v %v\n\n", p.Name, p.Time, p.Id, file, parseComment(p.Comment))
+	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, p.Id, file, parseComment(p.Comment))
+	fmt.Printf("---\n\n")
 }
 
 func parseComment(comm string) string {
+	var newComm string
 	for y, x := range stuffReplace {
 		comm = x.ReplaceAllString(comm, stuffEndup[y])
 	}
-	return comm
 
+	lenOfLine := 0
+	for _, char := range comm {
+		lenOfLine += 1
+		if char == '\n' { lenOfLine = 0 }
+		if lenOfLine > 70 {
+			if char == ' ' {
+				newComm += "\n"
+				lenOfLine = 0
+			}
+		}
+		newComm += string(char)
+	}
+	
+	return regexp.MustCompile("\n ").ReplaceAllString(newComm, "\n")
 }
