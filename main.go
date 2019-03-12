@@ -7,6 +7,8 @@ import(
 	"os"
 	"strconv"
 	"regexp"
+	"strings"
+	"math"
 )
 
 var(
@@ -102,9 +104,16 @@ func ReadCatalog(b string) {
 func readPost(p *api.Post) {
 	var file string
 	if p.File != nil { file = p.File.String()}
+	spacers := boxPost(len(p.Name)) + boxPost(len(p.Time.String())) + boxPost(int(math.Log10(float64(p.Id)))) + "---"
+	var additional string
+	if len(file) > 0 {
+		additional = boxPost(len(file)-len(spacers))
+	} else { additional = "" }
+	fmt.Println(spacers+additional)
 	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, p.Id, file, parseComment(p.Comment))
-	fmt.Printf("---\n\n")
+	fmt.Printf("%v\n", spacers+additional)
 }
+func boxPost(amount int) string { return strings.Repeat("-", amount) }
 
 func parseComment(comm string) string {
 	var newComm string
@@ -116,7 +125,7 @@ func parseComment(comm string) string {
 	for _, char := range comm {
 		lenOfLine += 1
 		if char == '\n' { lenOfLine = 0 }
-		if lenOfLine > 70 {
+		if lenOfLine > 80 {
 			if char == ' ' {
 				newComm += "\n"
 				lenOfLine = 0
