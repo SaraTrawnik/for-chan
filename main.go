@@ -91,8 +91,10 @@ func ReadCatalog(b string) {
 		fmt.Println("could not get catalog from", b, "board")
 		return
 	}
-	for _, oneThread := range entireCatalog[0].Threads { // fix that later
-		readPost(oneThread.OP)
+	for _, catalogPage := range entireCatalog {
+		for _, oneThread := range catalogPage.Threads {
+			readPost(oneThread.OP)
+		}
 	}
 
 }
@@ -122,6 +124,6 @@ func parseComment(comm string) string {
 		}
 		newComm += string(char)
 	}
-	
+
 	return regexp.MustCompile("\n ").ReplaceAllString(newComm, "\n")
 }
