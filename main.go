@@ -2,6 +2,7 @@ package main
 
 import(
 	"github.com/moshee/go-4chan-api/api"
+	"github.com/logrusorgru/aurora"
 
 	"fmt"
 	"os"
@@ -27,6 +28,7 @@ var(
 )
 
 func main() {
+	fmt.Println(aurora.Red("test"))
 	board, thread := ParseArgs()
 	if board == "" && thread == 0 { fmt.Println("didnt provide nor thread nor board"); return }
 	if board == "" { fmt.Println("how can i find a thread if no board is given"); return }
@@ -109,7 +111,6 @@ func readPost(p *api.Post) {
 	if len(file) > 0 {
 		additional = boxPost(len(file)-len(spacers))
 	} else { additional = "" }
-	fmt.Println(spacers+additional)
 	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, p.Id, file, parseComment(p.Comment))
 	fmt.Printf("%v\n", spacers+additional)
 }
