@@ -25,10 +25,11 @@ var(
 									regexp.MustCompile("&quot;"),
 									regexp.MustCompile("<wbr>")}
 	stuffEndup = []string{"\n", "", "", ">", "", "", "'", "-", "-", "\"", ""}
+	fgcolors = []aurora.Color{aurora.BlackFg, aurora.RedFg, aurora.GreenFg, aurora.BrownFg, aurora.BlueFg, aurora.MagentaFg, aurora.CyanFg, aurora.GrayFg}
+	bgcolors = []aurora.Color{aurora.BlackBg, aurora.RedBg, aurora.GreenBg, aurora.BrownBg, aurora.BlueBg, aurora.MagentaBg, aurora.CyanBg, aurora.GrayBg}
 )
 
 func main() {
-	fmt.Println(aurora.Red("test"))
 	board, thread := ParseArgs()
 	if board == "" && thread == 0 { fmt.Println("didnt provide nor thread nor board"); return }
 	if board == "" { fmt.Println("how can i find a thread if no board is given"); return }
@@ -111,7 +112,7 @@ func readPost(p *api.Post) {
 	if len(file) > 0 {
 		additional = boxPost(len(file)-len(spacers))
 	} else { additional = "" }
-	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, p.Id, file, parseComment(p.Comment))
+	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, aurora.Colorize(p.Id, fgcolors[hash1(p.Id)%8]|bgcolors[hash1(p.Id)%8]), file, parseComment(p.Comment))
 	fmt.Printf("%v\n", spacers+additional)
 }
 func boxPost(amount int) string { return strings.Repeat("-", amount) }
@@ -136,4 +137,8 @@ func parseComment(comm string) string {
 	}
 
 	return regexp.MustCompile("\n ").ReplaceAllString(newComm, "\n")
+}
+
+func hash1(id int64) int64 {
+	return (((((id + 1) ^ (id >> 3)) * 7) ^ (id >> 3)) * 11)
 }
