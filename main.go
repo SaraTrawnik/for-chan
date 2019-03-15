@@ -25,6 +25,7 @@ var(
 									regexp.MustCompile("&quot;"),
 									regexp.MustCompile("<wbr>")}
 	stuffEndup = []string{"\n", "", "", ">", "", "", "'", "-", "-", "\"", ""}
+	postColorizer = regexp.MustCompile(">>[0-9]+")
 	fgcolors = []aurora.Color{aurora.BlackFg, aurora.RedFg, aurora.GreenFg, aurora.BrownFg, aurora.BlueFg, aurora.MagentaFg, aurora.CyanFg, aurora.GrayFg}
 	bgcolors = []aurora.Color{aurora.BlackBg, aurora.RedBg, aurora.GreenBg, aurora.BrownBg, aurora.BlueBg, aurora.MagentaBg, aurora.CyanBg, aurora.GrayBg}
 )
@@ -112,7 +113,7 @@ func readPost(p *api.Post) {
 	if len(file) > 0 {
 		additional = boxPost(len(file)-len(spacers))
 	} else { additional = "" }
-	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, aurora.Colorize(p.Id, fgcolors[hash1(p.Id)%8]|bgcolors[hash1(p.Id)%8]), file, parseComment(p.Comment))
+	fmt.Printf("%v %v %v\n%v%v\n", p.Name, p.Time, getColor(p.Id), file, parseComment(p.Comment))
 	fmt.Printf("%v\n", spacers+additional)
 }
 func boxPost(amount int) string { return strings.Repeat("-", amount) }
@@ -136,9 +137,21 @@ func parseComment(comm string) string {
 		newComm += string(char)
 	}
 
+	newComm = postColorizer.ReplaceAllStringFunc(newComm, helperGetColor)
 	return regexp.MustCompile("\n ").ReplaceAllString(newComm, "\n")
 }
 
-func hash1(id int64) int64 {
+func hash(id int64) int64 {
 	return (((((id + 1) ^ (id >> 3)) * 7) ^ (id >> 3)) * 11)
+}
+func getColor(id int64) string {
+	fgVal := hash(id)%8
+	bgVal := hash(id)%7
+	tempbgcolors := append(bgcolors[:fgVal], bgcolors[fgVal:]...)
+	return aurora.Sprintf(aurora.Colorize(id, fgcolors[fgVal] | tempbgcolors[bgVal]))
+}
+
+func helperGetColor(id string) string {
+	val, _ := strconv.ParseInt(id[2:], 10, 64)
+	return ">>"+getColor(val)
 }
