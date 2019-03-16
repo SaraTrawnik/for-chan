@@ -99,6 +99,7 @@ func ReadCatalog(b string) {
 	}
 	for _, catalogPage := range entireCatalog {
 		for _, oneThread := range catalogPage.Threads {
+			fmt.Printf("R:%v I:%v ", oneThread.Replies(), oneThread.Images())
 			readPost(oneThread.OP)
 		}
 	}
@@ -145,9 +146,17 @@ func hash(id int64) int64 {
 	return (((((id + 1) ^ (id >> 3)) * 7) ^ (id >> 3)) * 11)
 }
 func getColor(id int64) string {
+	var tempbgcolors []aurora.Color
 	fgVal := hash(id)%8
 	bgVal := hash(id)%7
-	tempbgcolors := append(bgcolors[:fgVal], bgcolors[fgVal:]...)
+	if fgVal == 0 { 
+		tempbgcolors = bgcolors[(fgVal+1):] 
+	}
+	if fgVal == int64((len(bgcolors) - 1)) { 
+		tempbgcolors = bgcolors[:fgVal]
+	} else {
+		tempbgcolors = append(bgcolors[(fgVal+1):], bgcolors[:fgVal]...)
+	}
 	return aurora.Sprintf(aurora.Colorize(id, fgcolors[fgVal] | tempbgcolors[bgVal]))
 }
 
