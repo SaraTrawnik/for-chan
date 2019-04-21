@@ -27,7 +27,7 @@ var(
 	stuffEndup = []string{"\n", "", "", ">", "", "", "'", "-", "-", "\"", ""}
 )
 
-func ReadThread(b string, t int64) {
+func Thread(b string, t int64) {
 	threadPosts, err := api.GetThread(b, t)
 	if err != nil {
 		fmt.Println("could not read thread", t, "from board", b)
@@ -39,7 +39,7 @@ func ReadThread(b string, t int64) {
 	}
 }
 
-func ReadCatalog(b string) {
+func Catalog(b string) {
 	entireCatalog, err := api.GetCatalog(b)
 	if err != nil {
 		fmt.Println("could not get catalog from", b, "board")
